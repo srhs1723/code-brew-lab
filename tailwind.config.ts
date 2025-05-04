@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -52,6 +53,20 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// Coffee-inspired color scheme
+				coffee: {
+					light: '#F5F1ED',
+					cream: '#E8DBC5',
+					caramel: '#C89F65',
+					mocha: '#7D5A50',
+					espresso: '#3A2618',
+					dark: '#1E1512',
+				},
+				cinnamon: {
+					DEFAULT: '#C05746',
+					light: '#E57373',
+					dark: '#943126',
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -84,12 +99,20 @@ export default {
 					to: {
 						height: '0'
 					}
-				}
+				},
+				'fade-in': {
+					'0%': { opacity: '0' },
+					'100%': { opacity: '1' }
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
-			}
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out',
+			},
+			fontFamily: {
+				'fira-code': ['"Fira Code"', 'monospace'],
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
