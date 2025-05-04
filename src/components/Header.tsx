@@ -1,12 +1,12 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import ThemeToggle from './ThemeToggle';
 import TemplateSelector from './TemplateSelector';
 import { useEditor } from '@/context/EditorContext';
-import { Download, Upload, Keyboard } from 'lucide-react';
+import { Download, Upload, Keyboard, Share2 } from 'lucide-react';
 import JSZip from 'jszip';
 import FileSaver from 'file-saver';
+import { toast } from "@/components/ui/sonner";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +19,8 @@ import {
 export default function Header() {
   const { editorState, resetCode, setHtml, setCss, setJavascript } = useEditor();
   const { html, css, javascript } = editorState;
+  const [shareLink, setShareLink] = useState<string | null>(null);
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
   
   // Download code as individual files or zip
   const downloadAsZip = () => {
@@ -60,6 +62,55 @@ export default function Header() {
     e.target.value = '';
   };
 
+  // Generate a temporary share link (valid for 25 minutes)
+  const generateShareLink = () => {
+    setIsGeneratingLink(true);
+    
+    // Create a temporary object to store in localStorage
+    const shareData = {
+      html,
+      css,
+      javascript,
+      expiry: Date.now() + 25 * 60 * 1000, // 25 minutes from now
+      id: `share_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    };
+    
+    // Store in localStorage
+    try {
+      const shareId = shareData.id;
+      localStorage.setItem(`htmlreader_share_${shareId}`, JSON.stringify(shareData));
+      
+      // Create the share link
+      const baseUrl = window.location.origin;
+      const shareUrl = `${baseUrl}?share=${shareId}`;
+      
+      setShareLink(shareUrl);
+      setIsGeneratingLink(false);
+      
+      // Auto-expire after 25 minutes
+      setTimeout(() => {
+        localStorage.removeItem(`htmlreader_share_${shareId}`);
+      }, 25 * 60 * 1000);
+    } catch (error) {
+      console.error("Error generating share link:", error);
+      toast.error("Failed to generate share link");
+      setIsGeneratingLink(false);
+    }
+  };
+  
+  // Copy the share link to clipboard
+  const copyShareLink = () => {
+    if (!shareLink) return;
+    
+    navigator.clipboard.writeText(shareLink)
+      .then(() => {
+        toast.success("Share link copied to clipboard!");
+      })
+      .catch(() => {
+        toast.error("Failed to copy link");
+      });
+  };
+
   // Keyboard shortcuts dialog
   const shortcuts = [
     { key: 'Ctrl + S', description: 'Save changes (automatic)' },
@@ -81,6 +132,50 @@ export default function Header() {
         </div>
         
         <div className="flex items-center gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full" title="Share">
+                <Share2 className="h-5 w-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Share Your Code</DialogTitle>
+                <DialogDescription>
+                  Create a temporary link that expires in 25 minutes
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                {!shareLink ? (
+                  <Button 
+                    onClick={generateShareLink} 
+                    disabled={isGeneratingLink}
+                    className="w-full"
+                  >
+                    {isGeneratingLink ? 'Generating...' : 'Generate Share Link'}
+                  </Button>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        readOnly 
+                        value={shareLink} 
+                        className="flex-1 bg-muted px-3 py-2 text-sm rounded-md border"
+                      />
+                      <Button onClick={copyShareLink} variant="secondary">
+                        Copy
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      This link will expire in 25 minutes
+                    </p>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+          
           <Dialog>
             <DialogTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full" title="Keyboard shortcuts">

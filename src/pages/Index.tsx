@@ -1,5 +1,6 @@
 
 import { EditorProvider } from "@/context/EditorContext";
+import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Editor from "@/components/Editor";
 import Preview from "@/components/Preview";
@@ -7,15 +8,62 @@ import TabSelector from "@/components/TabSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Eye, Code } from "lucide-react";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/sonner";
+
+interface SharedCodeData {
+  html: string;
+  css: string;
+  javascript: string;
+  expiry: number;
+  id: string;
+}
 
 const Index = () => {
   const isMobile = useIsMobile();
   const [activeView, setActiveView] = useState<'editor' | 'preview'>('editor');
+  const [initialCode, setInitialCode] = useState<{
+    html?: string;
+    css?: string;
+    javascript?: string;
+  } | null>(null);
+
+  // Check for shared code on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shareId = params.get('share');
+    
+    if (shareId) {
+      try {
+        const sharedDataStr = localStorage.getItem(`htmlreader_share_${shareId}`);
+        
+        if (sharedDataStr) {
+          const sharedData = JSON.parse(sharedDataStr) as SharedCodeData;
+          
+          // Check if expired
+          if (sharedData.expiry < Date.now()) {
+            toast.error("This shared link has expired");
+            return;
+          }
+          
+          // Set the initial code
+          setInitialCode({
+            html: sharedData.html,
+            css: sharedData.css,
+            javascript: sharedData.javascript
+          });
+          
+          toast.success("Loaded shared code");
+        }
+      } catch (error) {
+        console.error("Error loading shared code:", error);
+        toast.error("Failed to load shared code");
+      }
+    }
+  }, []);
 
   return (
-    <EditorProvider>
+    <EditorProvider initialCode={initialCode}>
       <div className="min-h-screen flex flex-col">
         <Header />
         

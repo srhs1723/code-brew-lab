@@ -38,7 +38,7 @@ export default function Preview() {
 
     try {
       // Instead of directly accessing contentDocument, we create the HTML content
-      // and set it using srcdoc attribute, which avoids cross-origin issues
+      // and set it using srcDoc attribute, which avoids cross-origin issues
       const content = `
         <!DOCTYPE html>
         <html>
@@ -68,8 +68,8 @@ export default function Preview() {
         </html>
       `;
       
-      // Set the content using srcdoc (which avoids cross-origin issues)
-      iframe.srcdoc = content;
+      // Set the content using srcDoc (which avoids cross-origin issues)
+      iframe.srcDoc = content;
       setPreviewError(null);
       
     } catch (error) {
@@ -107,7 +107,7 @@ export default function Preview() {
           title="preview"
           sandbox="allow-scripts"
           className="w-full h-full border-0"
-          srcdoc=""
+          srcDoc=""
         />
       </div>
     </div>

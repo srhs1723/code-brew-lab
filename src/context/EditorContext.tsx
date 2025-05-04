@@ -22,6 +22,15 @@ interface EditorContextType {
   setTemplate: (html: string, css: string, js: string) => void;
 }
 
+interface EditorProviderProps {
+  children: ReactNode;
+  initialCode?: {
+    html?: string;
+    css?: string;
+    javascript?: string;
+  } | null;
+}
+
 const defaultState: EditorState = {
   html: '<!-- Add your HTML here -->\n<h1>Hello HTMLReader!</h1>\n<p>Start coding to see the live preview.</p>',
   css: '/* Add your CSS here */\nbody {\n  font-family: system-ui, sans-serif;\n  line-height: 1.5;\n  padding: 2rem;\n}\n\nh1 {\n  color: #C05746;\n}',
@@ -32,10 +41,20 @@ const defaultState: EditorState = {
 
 const EditorContext = createContext<EditorContextType | undefined>(undefined);
 
-export function EditorProvider({ children }: { children: ReactNode }) {
+export function EditorProvider({ children, initialCode = null }: EditorProviderProps) {
   // Try to load saved state from localStorage
   const savedState = localStorage.getItem('htmlreader-state');
-  const initialState = savedState ? JSON.parse(savedState) : defaultState;
+  let initialState = savedState ? JSON.parse(savedState) : defaultState;
+  
+  // Override with initialCode if provided (for shared links)
+  if (initialCode) {
+    initialState = {
+      ...initialState,
+      html: initialCode.html ?? initialState.html,
+      css: initialCode.css ?? initialState.css,
+      javascript: initialCode.javascript ?? initialState.javascript,
+    };
+  }
 
   const [html, setHtml] = useState(initialState.html);
   const [css, setCss] = useState(initialState.css);
