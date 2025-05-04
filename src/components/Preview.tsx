@@ -1,11 +1,14 @@
 
 import { useEffect, useRef } from 'react';
 import { useEditor } from '@/context/EditorContext';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { AlertCircle } from 'lucide-react';
 
 export default function Preview() {
   const { editorState } = useEditor();
   const { html, css, javascript } = editorState;
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     updatePreview();
@@ -33,7 +36,23 @@ export default function Preview() {
       <!DOCTYPE html>
       <html>
         <head>
-          <style>${css}</style>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            /* Reset styles for consistency */
+            * {
+              box-sizing: border-box;
+              margin: 0;
+              padding: 0;
+            }
+            body {
+              font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              line-height: 1.5;
+              overflow-x: hidden;
+              width: 100%;
+              height: 100%;
+            }
+            ${css}
+          </style>
         </head>
         <body>
           ${html}
@@ -42,23 +61,31 @@ export default function Preview() {
       </html>
     `;
 
-    document.open();
-    document.write(content);
-    document.close();
+    try {
+      document.open();
+      document.write(content);
+      document.close();
+    } catch (error) {
+      console.error("Error updating preview:", error);
+    }
   };
 
   return (
     <div className="h-full w-full flex flex-col bg-card rounded-lg shadow border border-border overflow-hidden">
       <div className="px-4 py-2 bg-muted flex items-center justify-between border-b border-border">
-        <div className="text-sm font-medium">Preview</div>
+        <div className="text-sm font-medium flex items-center gap-1">
+          Preview
+          {isMobile && <span className="text-xs text-muted-foreground">(Mobile view)</span>}
+        </div>
         <button
           onClick={updatePreview}
           className="text-xs px-2 py-1 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+          aria-label="Refresh preview"
         >
           Refresh
         </button>
       </div>
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden relative bg-white">
         <iframe
           ref={iframeRef}
           title="preview"
