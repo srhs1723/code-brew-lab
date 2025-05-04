@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useEditor } from '@/context/EditorContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AlertCircle } from 'lucide-react';
@@ -9,9 +9,14 @@ export default function Preview() {
   const { html, css, javascript } = editorState;
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const isMobile = useIsMobile();
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   useEffect(() => {
-    updatePreview();
+    // Use a timer to slightly delay the update for better performance
+    const timer = setTimeout(() => {
+      updatePreview();
+    }, 300);
+    return () => clearTimeout(timer);
   }, [html, css, javascript]);
 
   useEffect(() => {
@@ -31,47 +36,45 @@ export default function Preview() {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
-    const document = iframe.contentDocument || iframe.contentWindow?.document;
-    if (!document) return;
-
-    const content = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            /* Reset styles for consistency */
-            * {
-              box-sizing: border-box;
-              margin: 0;
-              padding: 0;
-            }
-            body {
-              font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              line-height: 1.5;
-              overflow-x: hidden;
-              width: 100%;
-              height: 100%;
-            }
-            ${css}
-          </style>
-        </head>
-        <body>
-          ${html}
-          <script>${javascript}</script>
-        </body>
-      </html>
-    `;
-
     try {
-      document.open();
-      document.write(content);
-      document.close();
+      // Instead of directly accessing contentDocument, we create the HTML content
+      // and set it using srcdoc attribute, which avoids cross-origin issues
+      const content = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+              /* Reset styles for consistency */
+              * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+              }
+              body {
+                font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                line-height: 1.5;
+                overflow-x: hidden;
+                width: 100%;
+                height: 100%;
+              }
+              ${css}
+            </style>
+          </head>
+          <body>
+            ${html}
+            <script>${javascript}</script>
+          </body>
+        </html>
+      `;
       
-      // Force update of iframe content
-      iframe.contentWindow?.focus();
+      // Set the content using srcdoc (which avoids cross-origin issues)
+      iframe.srcdoc = content;
+      setPreviewError(null);
+      
     } catch (error) {
       console.error("Error updating preview:", error);
+      setPreviewError("Failed to update preview");
     }
   };
 
@@ -91,12 +94,20 @@ export default function Preview() {
         </button>
       </div>
       <div className="flex-1 overflow-hidden relative bg-white">
+        {previewError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-10">
+            <div className="flex items-center gap-2 text-destructive bg-destructive/10 px-3 py-2 rounded">
+              <AlertCircle size={16} />
+              <span>{previewError}</span>
+            </div>
+          </div>
+        )}
         <iframe
           ref={iframeRef}
           title="preview"
           sandbox="allow-scripts"
           className="w-full h-full border-0"
-          onLoad={updatePreview}
+          srcdoc=""
         />
       </div>
     </div>
