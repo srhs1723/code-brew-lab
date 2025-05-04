@@ -27,6 +27,7 @@ export default function TabSelector() {
               ? "text-foreground border-b-2 border-accent"
               : "text-muted-foreground hover:text-foreground"
           )}
+          aria-label={`Switch to ${tab.label} editor`}
         >
           {tab.icon}
           {!isMobile && tab.label}

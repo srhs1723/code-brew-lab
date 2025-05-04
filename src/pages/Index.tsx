@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const isMobile = useIsMobile();
-  const [activeView, setActiveView] = useState<'editor' | 'preview'>(isMobile ? 'editor' : 'both');
+  const [activeView, setActiveView] = useState<'editor' | 'preview'>('editor');
 
   return (
     <EditorProvider>

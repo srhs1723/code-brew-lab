@@ -24,6 +24,7 @@ export default function ThemeToggle() {
       ) : (
         <Moon className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-slate-700`} />
       )}
+      {isMobile && <span className="ml-1 text-xs">Theme</span>}
     </Button>
   );
 }

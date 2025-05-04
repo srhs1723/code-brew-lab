@@ -12,10 +12,12 @@ export default function Preview() {
 
   useEffect(() => {
     updatePreview();
-    
+  }, [html, css, javascript]);
+
+  useEffect(() => {
     // Add keyboard shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+Enter to update preview (although we already update in real-time)
+      // Ctrl+Enter to update preview
       if (e.ctrlKey && e.key === 'Enter') {
         updatePreview();
       }
@@ -23,13 +25,13 @@ export default function Preview() {
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [html, css, javascript]);
+  }, []);
 
   const updatePreview = () => {
     const iframe = iframeRef.current;
     if (!iframe) return;
 
-    const document = iframe.contentDocument;
+    const document = iframe.contentDocument || iframe.contentWindow?.document;
     if (!document) return;
 
     const content = `
@@ -65,6 +67,9 @@ export default function Preview() {
       document.open();
       document.write(content);
       document.close();
+      
+      // Force update of iframe content
+      iframe.contentWindow?.focus();
     } catch (error) {
       console.error("Error updating preview:", error);
     }
@@ -91,6 +96,7 @@ export default function Preview() {
           title="preview"
           sandbox="allow-scripts"
           className="w-full h-full border-0"
+          onLoad={updatePreview}
         />
       </div>
     </div>
