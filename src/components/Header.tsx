@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import ThemeToggle from './ThemeToggle';
@@ -21,6 +22,7 @@ export default function Header() {
   const { html, css, javascript } = editorState;
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   
   // Download code as individual files or zip
   const downloadAsZip = () => {
@@ -66,22 +68,24 @@ export default function Header() {
   const generateShareLink = () => {
     setIsGeneratingLink(true);
     
-    // Create a temporary object to store in localStorage
-    const shareData = {
-      html,
-      css,
-      javascript,
-      expiry: Date.now() + 25 * 60 * 1000, // 25 minutes from now
-      id: `share_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    };
-    
-    // Store in localStorage
     try {
-      const shareId = shareData.id;
+      // Create a unique ID for this share
+      const shareId = `share_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Create a temporary object to store in localStorage
+      const shareData = {
+        html,
+        css,
+        javascript,
+        expiry: Date.now() + 25 * 60 * 1000, // 25 minutes from now
+        id: shareId
+      };
+      
+      // Store in localStorage
       localStorage.setItem(`htmlreader_share_${shareId}`, JSON.stringify(shareData));
       
-      // Create the share link
-      const baseUrl = window.location.origin;
+      // Create the share link - use current location's origin and path
+      const baseUrl = window.location.origin + window.location.pathname;
       const shareUrl = `${baseUrl}?share=${shareId}`;
       
       setShareLink(shareUrl);
@@ -132,7 +136,7 @@ export default function Header() {
         </div>
         
         <div className="flex items-center gap-2">
-          <Dialog>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full" title="Share">
                 <Share2 className="h-5 w-5" />

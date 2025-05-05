@@ -54,6 +54,11 @@ const Index = () => {
           });
           
           toast.success("Loaded shared code");
+          
+          // Clean URL after loading shared code (optional)
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+          toast.error("Shared code not found or has been removed");
         }
       } catch (error) {
         console.error("Error loading shared code:", error);
