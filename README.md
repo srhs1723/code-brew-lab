@@ -1,5 +1,3 @@
-# Welcome to your Lovable project
-
 ## Project info
 
 **URL**: https://lovable.dev/projects/c1c0ddf6-b480-4169-be54-eedd1b1f6a41
@@ -7,12 +5,6 @@
 ## How can I edit this code?
 
 There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/c1c0ddf6-b480-4169-be54-eedd1b1f6a41) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
 
 **Use your preferred IDE**
 
@@ -27,7 +19,7 @@ Follow these steps:
 git clone https://github.com/srhs1723/code-brew-lab
 
 # Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+cd code-brew-lab
 
 # Step 3: Install the necessary dependencies.
 npm i
