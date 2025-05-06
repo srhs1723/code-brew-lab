@@ -70,7 +70,7 @@ export default function Header() {
     
     try {
       // Create a unique ID for this share
-      const shareId = `share_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const shareId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
       // Create a temporary object to store in localStorage
       const shareData = {
@@ -84,9 +84,9 @@ export default function Header() {
       // Store in localStorage
       localStorage.setItem(`htmlreader_share_${shareId}`, JSON.stringify(shareData));
       
-      // Create the share link - use current location's origin and path
-      const baseUrl = window.location.origin + window.location.pathname;
-      const shareUrl = `${baseUrl}?share=${shareId}`;
+      // Create the share link with the new share page path
+      const baseUrl = window.location.origin;
+      const shareUrl = `${baseUrl}/share?id=${shareId}`;
       
       setShareLink(shareUrl);
       setIsGeneratingLink(false);
