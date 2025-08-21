@@ -8,6 +8,7 @@ import { Download, Upload, Keyboard, Share2 } from 'lucide-react';
 import JSZip from 'jszip';
 import FileSaver from 'file-saver';
 import { toast } from "@/components/ui/sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -64,37 +65,38 @@ export default function Header() {
     e.target.value = '';
   };
 
-  // Generate a temporary share link (valid for 25 minutes)
-  const generateShareLink = () => {
+  // Generate a permanent share link stored in Supabase
+  const generateShareLink = async () => {
     setIsGeneratingLink(true);
     
     try {
-      // Create a unique ID for this share
-      const shareId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // Calculate expiry time (25 minutes from now)
+      const expiresAt = new Date(Date.now() + 25 * 60 * 1000).toISOString();
       
-      // Create a temporary object to store in localStorage
-      const shareData = {
-        html,
-        css,
-        javascript,
-        expiry: Date.now() + 25 * 60 * 1000, // 25 minutes from now
-        id: shareId
-      };
+      // Insert into Supabase
+      const { data, error } = await supabase
+        .from('shared_code')
+        .insert({
+          html,
+          css,
+          javascript,
+          expires_at: expiresAt
+        })
+        .select('id')
+        .single();
       
-      // Store in localStorage
-      localStorage.setItem(`htmlreader_share_${shareId}`, JSON.stringify(shareData));
+      if (error) {
+        throw error;
+      }
       
-      // Create the share link with the new share page path
+      // Create the share link
       const baseUrl = window.location.origin;
-      const shareUrl = `${baseUrl}/share?id=${shareId}`;
+      const shareUrl = `${baseUrl}/share?id=${data.id}`;
       
       setShareLink(shareUrl);
       setIsGeneratingLink(false);
       
-      // Auto-expire after 25 minutes
-      setTimeout(() => {
-        localStorage.removeItem(`htmlreader_share_${shareId}`);
-      }, 25 * 60 * 1000);
+      toast.success("Share link generated successfully!");
     } catch (error) {
       console.error("Error generating share link:", error);
       toast.error("Failed to generate share link");

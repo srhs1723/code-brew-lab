@@ -5,13 +5,14 @@ import Preview from '@/components/Preview';
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SharedCode {
   html: string;
   css: string;
   javascript: string;
-  expiry: number;
   id: string;
+  view_count?: number;
 }
 
 const Share = () => {
@@ -24,35 +25,40 @@ const Share = () => {
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    if (!shareId) {
-      navigate('/');
-      return;
-    }
-    
-    try {
-      const sharedDataStr = localStorage.getItem(`htmlreader_share_${shareId}`);
-      
-      if (!sharedDataStr) {
-        setIsExpired(true);
-        setIsLoading(false);
+    const fetchSharedCode = async () => {
+      if (!shareId) {
+        navigate('/');
         return;
       }
       
-      const sharedData = JSON.parse(sharedDataStr) as SharedCode;
-      
-      // Check if expired
-      if (sharedData.expiry < Date.now()) {
+      try {
+        const { data, error } = await supabase
+          .from('shared_code')
+          .select('id, html, css, javascript, view_count')
+          .eq('id', shareId)
+          .maybeSingle();
+        
+        if (error || !data) {
+          setIsExpired(true);
+        } else {
+          setSharedCode(data);
+          
+          // Increment view count (fire and forget)
+          supabase
+            .from('shared_code')
+            .update({ view_count: (data.view_count || 0) + 1 })
+            .eq('id', shareId)
+            .then(() => {});
+        }
+      } catch (error) {
+        console.error("Error loading shared code:", error);
         setIsExpired(true);
-        localStorage.removeItem(`htmlreader_share_${shareId}`);
-      } else {
-        setSharedCode(sharedData);
       }
-    } catch (error) {
-      console.error("Error loading shared code:", error);
-      setIsExpired(true);
-    }
+      
+      setIsLoading(false);
+    };
     
-    setIsLoading(false);
+    fetchSharedCode();
   }, [shareId, navigate]);
 
   // Go back to editor
