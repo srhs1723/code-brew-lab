@@ -14,13 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      shared_code: {
+        Row: {
+          created_at: string
+          css: string
+          expires_at: string
+          html: string
+          id: string
+          javascript: string
+          view_count: number
+        }
+        Insert: {
+          created_at?: string
+          css: string
+          expires_at: string
+          html: string
+          id?: string
+          javascript: string
+          view_count?: number
+        }
+        Update: {
+          created_at?: string
+          css?: string
+          expires_at?: string
+          html?: string
+          id?: string
+          javascript?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      cleanup_expired_shares: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
